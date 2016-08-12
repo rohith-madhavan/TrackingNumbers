@@ -11,15 +11,13 @@ public class Tracking {
 
 	public void insertRecord(TrackingRow newRecord) {
 		int i=0;
-		
-		for(TrackingRow listrecord : recordlist) {
-			if(newRecord.range.lo<listrecord.range.lo) {
+		for(TrackingRow r : recordlist) {
+			if(newRecord.range.lo < r.range.lo) {
 				recordlist.add(i, newRecord);
-				break;
+				return;
 			}
 			i++;
 		}
-		
 		recordlist.add(newRecord);
 	}
 	
@@ -82,7 +80,7 @@ public class Tracking {
 		{
 			if(!listrecord.invalid)
 			{
-				System.out.println(" "+listrecord.range.hi+" - "+listrecord.range.lo+" -- "+listrecord.statusCode+" -- "+listrecord.transferCode);
+				System.out.println(listrecord.range.lo + " " + listrecord.range.hi + " " + listrecord.statusCode + " " + listrecord.transferCode);
 			}
 		}
 	}
@@ -94,41 +92,46 @@ public class Tracking {
 		TrackingRow previousRecord;
 		TrackingRow listrecord = null;
 		TrackingRow nextRecord;
-		if(recordlist.size()==0)
+		
+		if(recordlist.size() == 0)
 		{
+			System.out.println("First insert");
 			insertRecord(record);
+			return;
 		}
 		
-		int positiontoCompare=0;
+//		int positiontoCompare=0;
 		boolean insertAtEnd=true;
 		
 		for(TrackingRow list : recordlist)
 		{
 			listrecord = list;
-			if(record.range.lo>listrecord.range.lo || record.range.hi>listrecord.range.hi)
+			if(record.range.lo >= listrecord.range.lo || record.range.hi >= listrecord.range.hi)
 			{
-				insertAtEnd=false;
+				insertAtEnd = false;
 				break;
 			}
 			
 		}
 		
-		if(insertAtEnd)
-		{
-			insertRecord(record);
-		}
-		else
-		{
+//		if(insertAtEnd)
+//		{
+//			System.out.println("Insert at end");
+//			insertRecord(record);
+//		}
+//		else
+//		{
 			String decision = listrecord.range.classify(record.range);
 			switch(decision)
 			{
 				case "SAME":
+					System.out.println("Same");
 					listrecord.transferCode = record.transferCode;
 					listrecord.statusCode = record.statusCode;
 					break;
 					
 				case "SUPERSET":
-					
+					System.out.println("Superset");
 					previousRecord = new TrackingRow(listrecord.range.lo, record.range.lo - 1, listrecord.statusCode, listrecord.transferCode);
 					nextRecord = new TrackingRow(record.range.hi + 1, listrecord.range.hi, listrecord.statusCode, listrecord.transferCode);
 					deleteRecord(listrecord);
@@ -139,14 +142,17 @@ public class Tracking {
 					break;
 							
 				case "LESSDISJOINT":
+					System.out.println("Less Disjoint");
 					insertRecord(record);
 					break;
 					
 				case "MOREDISJOINT":
+					System.out.println("More disjoint");
 					insertRecord(record);
 					break;
 				
 				case "LESSOVERLAP":
+					System.out.println("Less overlap");
 					previousRecord = new TrackingRow(listrecord.range.lo, record.range.lo - 1, listrecord.statusCode, listrecord.transferCode);
 					insertRecord(previousRecord);
 					insertRecord(record);
@@ -154,30 +160,39 @@ public class Tracking {
 					break;
 				
 				case "MOREOVERLAP":
+					System.out.println("More overlap");
 					nextRecord = new TrackingRow(record.range.hi + 1, listrecord.range.hi, listrecord.statusCode, listrecord.transferCode);
 					deleteRecord(listrecord);
 					insertRecord(record);
 					insertRecord(nextRecord);
 					break;
+				default:
+					System.out.println("Insert at end");
+					insertRecord(record);
+					break;
 			}
-		}
+//		}
 				
 			
 			
 	}
 	
-	public TrackingRow processInput(String recordinformation)
+	public TrackingRow processInput(String line)
 	{
-		TrackingRow newRecord = new TrackingRow();
 		
-		String[] informationaboutrecord = recordinformation.split(" ");
-	
-		newRecord.range =  new Range(new Integer(informationaboutrecord[0]),new Integer(informationaboutrecord[1]));
-		newRecord.statusCode = informationaboutrecord[2];
-		newRecord.transferCode = Integer.parseInt(informationaboutrecord[3]);
-	
+		TrackingRow newRow = new TrackingRow();
 		
-		return newRecord;
+		String[] recordInfo = line.split(" ");
+	
+		int low = Integer.parseInt(recordInfo[0]);
+		int high = Integer.parseInt(recordInfo[1]);
+		int transferCode = Integer.parseInt(recordInfo[3]);
+		
+		newRow.range =  new Range(low, high);
+		newRow.statusCode = recordInfo[2];
+		newRow.transferCode = transferCode;	
+		
+		return newRow;
 	}
 	
 	public void readInput()
@@ -197,7 +212,7 @@ public class Tracking {
 				insertingIntoRecordList(newRecord);
 			}
 		
-			System.out.println(nameOfTestCase+" OUTPUT >> ");
+			System.out.println(nameOfTestCase+" OUTPUT");
 			displayRecordList();
 			recordlist = new ArrayList<TrackingRow>();
 		}
