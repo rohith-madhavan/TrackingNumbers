@@ -1,15 +1,21 @@
 package track;
 
-public class TrackingRow extends Range{
+public class TrackingRow {
+	String statusCode;
+	int transferCode;
+	Range range;
+	boolean invalid;
 	
-	String status;
-	int trackingCode;
-	
-	public String getStatus() {
-		return this.status;
+	TrackingRow()
+	{
+		invalid = false;
 	}
 	
-	public int getTrackingCode() {
-		return this.trackingCode;
+	TrackingRow(int lo, int hi, String statusCode, int transferCode)
+	{
+		invalid = false;
+		range = new Range(lo, hi);
+		this.statusCode = statusCode;
+		this.transferCode = transferCode;
 	}
 }
